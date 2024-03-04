@@ -15,6 +15,7 @@
 """Test cases describing input and expected output."""
 
 from dataclasses import dataclass
+from typing import Any
 
 from immutabledict import immutabledict
 
@@ -45,7 +46,7 @@ SEQUENCE_OF_PRIMITIVES_EXAMPLE = (1, "hello", True, None, b"hello")
 MAPPING_OF_PRIMITIVES_EXAMPLE = {
     value: value for value in SEQUENCE_OF_PRIMITIVES_EXAMPLE
 }
-NESTED_IMMUTABLE_EXAMPLE = immutabledict(
+NESTED_IMMUTABLE_EXAMPLE: Any = immutabledict(
     {"a": tuple(frozenset(SEQUENCE_OF_PRIMITIVES_EXAMPLE))}
 )
 

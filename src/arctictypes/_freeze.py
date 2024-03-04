@@ -17,7 +17,6 @@
 import collections
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from types import NoneType  # type: ignore
 from typing import Callable, Final, Generic, TypeVar
 
 import immutabledict
@@ -27,7 +26,7 @@ BUILTIN_PRIMITIVE_PRIORITY: Final = 200
 BUILTIN_NON_PRIMITIVE_IMMUTABLE_PRIORITY: Final = 100
 BUILTIN_MUTABLE_PRIORITY: Final = -100
 
-BUILTIN_PRIMITIVE_TYPES: Final = (str, int, float, bool, NoneType)
+BUILTIN_PRIMITIVE_TYPES: Final = (str, int, float, bool, type(None))
 
 InputObject = TypeVar("InputObject")
 
