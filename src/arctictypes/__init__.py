@@ -24,10 +24,10 @@ from ._converters import (
     STANDARD_PRIMITIVE_PRIORITY,
     Converter,
 )
-from ._freeze import UnknownTypeException, arctic_freeze
+from ._freeze import ConverterNotFoundError, arctic_freeze
 
 __all__ = [
-    "UnknownTypeException",
+    "ConverterNotFoundError",
     "arctic_freeze",
     "STANDARD_CONVERTERS",
     "STANDARD_CONVERTERS_BY_INPUT_TYPE",

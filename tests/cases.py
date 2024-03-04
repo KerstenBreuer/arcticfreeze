@@ -19,7 +19,7 @@ from typing import Any
 
 from immutabledict import immutabledict
 
-from arctictypes import UnknownTypeException
+from arctictypes import ConverterNotFoundError
 
 
 @dataclass(frozen=True)
@@ -169,16 +169,16 @@ INVALID_CASES = (
     InvalidTestCase(
         name="unkown_single_value",
         inputs=unkown_value,
-        expected_exception_type=UnknownTypeException,
+        expected_exception_type=ConverterNotFoundError,
     ),
     InvalidTestCase(
         name="tuple_of_unkowns",
         inputs=(unkown_value,),
-        expected_exception_type=UnknownTypeException,
+        expected_exception_type=ConverterNotFoundError,
     ),
     InvalidTestCase(
         name="nested_unkowns_children",
         inputs={"a": ({unkown_value})},
-        expected_exception_type=UnknownTypeException,
+        expected_exception_type=ConverterNotFoundError,
     ),
 )

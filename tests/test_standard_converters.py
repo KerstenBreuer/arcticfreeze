@@ -15,8 +15,16 @@
 """Test the standard converters."""
 
 from arctictypes import STANDARD_CONVERTERS, STANDARD_CONVERTERS_BY_INPUT_TYPE
+from arctictypes._freeze import sort_and_deduplicate_converters
 
 
-def test_non_redundant_converters():
-    """Make sure that only one standard converter is defined for each input type."""
-    assert len(STANDARD_CONVERTERS) == len(STANDARD_CONVERTERS_BY_INPUT_TYPE)
+def test_sorting_and_deduplication():
+    """Make sure that the standard converters are sorted and that they only contain one
+    converter for each input type.
+    """
+    (
+        expected_converters,
+        expected_converters_by_input_type,
+    ) = sort_and_deduplicate_converters(STANDARD_CONVERTERS)
+    assert expected_converters == STANDARD_CONVERTERS
+    assert expected_converters_by_input_type == STANDARD_CONVERTERS_BY_INPUT_TYPE
