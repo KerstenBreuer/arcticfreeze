@@ -12,23 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Short description of package."""  # Please adapt to package
+"""A subpackage containing the framework for defining converters (for converting
+individual potentially mutable types into immutable types) and the standard converters
+that come with this library."""
 
-from importlib.metadata import version
-
-from ._converters import (
-    STANDARD_CONVERTERS,
-    STANDARD_CONVERTERS_BY_INPUT_TYPE,
+from .base import (
     STANDARD_MUTABLE_PRIORITY,
     STANDARD_NON_PRIMITIVE_IMMUTABLE_PRIORITY,
     STANDARD_PRIMITIVE_PRIORITY,
     Converter,
 )
-from ._freeze import UnknownTypeException, arctic_freeze
+from .standard import STANDARD_CONVERTERS, STANDARD_CONVERTERS_BY_INPUT_TYPE
 
 __all__ = [
-    "UnknownTypeException",
-    "arctic_freeze",
     "STANDARD_CONVERTERS",
     "STANDARD_CONVERTERS_BY_INPUT_TYPE",
     "STANDARD_MUTABLE_PRIORITY",
@@ -36,5 +32,3 @@ __all__ = [
     "STANDARD_PRIMITIVE_PRIORITY",
     "Converter",
 ]
-
-__version__ = version(__package__)
