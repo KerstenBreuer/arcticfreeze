@@ -124,5 +124,15 @@ BUILTIN_CONVERTERS: Final = (
 )
 
 
-def shallow_freeze(obj: object):
-    """Shallow freeze an object."""
+class UnknownTypeException(Exception):
+    """An exception indicating that a converter for a given type could not be found."""
+
+    def __init__(self, input_type: type):
+        super().__init__(
+            f"No converter was found freezing an object of type {input_type}."
+        )
+
+
+def arctic_freeze(obj: object) -> object:
+    """Deep freeze the provided object."""
+    raise NotImplementedError("This function is not yet implemented.")

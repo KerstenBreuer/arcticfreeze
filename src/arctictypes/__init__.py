@@ -12,9 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test dummy."""
+"""Short description of package."""  # Please adapt to package
 
+from importlib.metadata import version
 
-def test_dummy():
-    """A very simple example test."""
-    pass
+from ._freeze import UnknownTypeException, arctic_freeze
+
+__all__ = ["UnknownTypeException", "arctic_freeze"]
+
+__version__ = version(__package__)
