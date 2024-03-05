@@ -14,20 +14,16 @@
 
 """Test the standard converters."""
 
-from arctictypes._converters import (
-    STANDARD_CONVERTERS,
-    STANDARD_CONVERTERS_BY_INPUT_TYPE,
-)
-from arctictypes._freeze import sort_and_deduplicate_converters
+import pytest
+
+from arctictypes._converters import STANDARD_CONVERTERS
+from arctictypes._resolve import sort_and_deduplicate_converters
 
 
-def test_sorting_and_deduplication():
-    """Make sure that the standard converters are sorted and that they only contain one
+@pytest.mark.parametrize("converters", [STANDARD_CONVERTERS])
+def test_converter_sequences(converters):
+    """Make sure that all builtin converters are sorted and that they only contain one
     converter for each input type.
     """
-    (
-        expected_converters,
-        expected_converters_by_input_type,
-    ) = sort_and_deduplicate_converters(STANDARD_CONVERTERS)
-    assert expected_converters == STANDARD_CONVERTERS
-    assert expected_converters_by_input_type == STANDARD_CONVERTERS_BY_INPUT_TYPE
+    expected_converters, _ = sort_and_deduplicate_converters(converters)
+    assert expected_converters == converters

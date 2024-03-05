@@ -17,11 +17,11 @@
 from importlib.metadata import version
 
 from ._converters import STANDARD_CONVERTERS, Converter
-from ._freeze import ConverterNotFoundError, arctic_freeze
+from ._freeze import ConverterNotFoundError, freeze
 
 __all__ = [
     "ConverterNotFoundError",
-    "arctic_freeze",
+    "freeze",
     "STANDARD_CONVERTERS",
     "Converter",
 ]

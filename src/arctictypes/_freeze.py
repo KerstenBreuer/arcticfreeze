@@ -12,116 +12,101 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Logic for deep freezing mutable objects."""
+"""High-level functions for deep freezing mutable objects."""
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import Optional
 
 from arctictypes._converters import (
     STANDARD_CONVERTERS,
-    STANDARD_CONVERTERS_BY_INPUT_TYPE,
     Converter,
+)
+from arctictypes._resolve import (
+    ConverterNotFoundError,  # noqa: F401 - a shortcut
+    get_converter_by_type,
 )
 
 
-class ConverterNotFoundError(Exception):
-    """An exception indicating that a converter for a given type could not be found."""
-
-    def __init__(self, *, input_type: type):
-        super().__init__(
-            f"No converter was found freezing an object of type {input_type}."
-        )
-
-
-def sort_and_deduplicate_converters(
+def custom_freeze(
+    obj: object,
+    *,
     converters: Sequence[Converter],
-) -> tuple[Sequence[Converter], Mapping[type, Converter]]:
-    """The provided sequence of converters is sorted (1) by decreasing priority and (2)
-    by the order in which they where originally defined. For each input type, only the
-    last converter in the sorted sequence is kept. The function returns a tuple of the
-    sorted sequence of converters and a mapping of sorted converters by input type.
-    """
-    sorted_converters = sorted(
-        converters, key=lambda converter: converter.priority, reverse=True
-    )
-    converters_by_input_type = {
-        converter.input_type: converter for converter in sorted_converters
-    }
-    sorted_deduplicated_converters = tuple(converters_by_input_type.values())
-    return sorted_deduplicated_converters, converters_by_input_type
-
-
-def get_all_converters(
-    *,
-    add_converters: Optional[Sequence[Converter]] = None,
-) -> tuple[Sequence[Converter], Mapping[type, Converter]]:
-    """Returns a tuple of a sequence of all converters and a mapping of converters by
-    input type. Both are sorted (1) by decreasing priority and (2) by the order in which
-    they where originally defined.
+    by_superclass: bool = False,
+) -> object:
+    """Deep freeze the provided object using the provided converts. If the provided
+    object is a nested data structure, it will start by freezing the lowest level
+    children and then work its way up to the root object. For each child object as well
+    as the root object, the object type is used to find the appropriate converter.
 
     Args:
-        add_converters:
-            An optional sequence of additional converters, see the documentation of the
-            `get_converter_by_type` function for details.
-    """
-    if add_converters is None:
-        # assumes that the standard converters are already sorted:
-        return STANDARD_CONVERTERS, STANDARD_CONVERTERS_BY_INPUT_TYPE
-
-    all_converters = tuple(
-        converter
-        for sequence in (STANDARD_CONVERTERS, add_converters)
-        for converter in sequence
-    )
-    return sort_and_deduplicate_converters(all_converters)
-
-
-def get_converter_by_type(
-    *,
-    input_type: type,
-    add_converters: Optional[Sequence[Converter]] = None,
-    by_superclass: bool = True,
-) -> Converter:
-    """Get the converter for the given input type.
-
-    Args:
-        input_type:
-            The type of the object to be converted.
-        add_converters:
-            Optionally provide a sequence of converters to be considered in addition
-            to the standard converters that come with this library. If providing a
-            custom converter for an input type that is already present in the standard
-            set, the standard converter is overwritten.
+        obj:
+            The object to be deep frozen.
+        converters:
+            A sequence of converters to be used to freeze the object and its children.
         by_superclass:
-            It is always tried to find a converter that matches the exact input type. If
-            that fails and this argument is set to True, it is also tried to find a
-            converter matching a superclass of the input type. The first matching
+            It is always tried to find a converter that matches the exact object type.
+            If that fails and this argument is set to `True`, it is also tried to find a
+            converter matching a superclass of the object type. The first matching
             converter is used, thus the priorities and the sequence of the converters
-            (both standard and custion once defined via `add_converters`) are important.
+            are important.
+            Please note that matching by superclass might cause data to be lost as a
+            sub-class may define additional attributes that are not present in the
+            superclass and thus not considered during the conversion. Thus by default,
+            this option is set to `False`.
 
     Raises:
         ConverterNotFoundError:
-            If no converter for the given input type could be found.
+            If no converter for the given object type could be found.
     """
-    converters, converters_by_input_type = get_all_converters(
-        add_converters=add_converters
+    converter = get_converter_by_type(
+        input_type=type(obj), converters=converters, by_superclass=by_superclass
     )
 
-    # try to match by exact type:
-    try:
-        return converters_by_input_type[input_type]
-    except KeyError as error:
-        if not by_superclass:
-            raise ConverterNotFoundError(input_type=input_type) from error
+    # prepare a callable to freeze children:
+    def freeze_child(child):
+        return custom_freeze(child, converters=converters, by_superclass=by_superclass)
 
-    # match by superclass:
-    for converter in converters:
-        if issubclass(input_type, converter.input_type):
-            return converter
-
-    raise ConverterNotFoundError(input_type=input_type)
+    # then freeze the object itself:
+    return converter.convert(obj, freeze_child)
 
 
-def arctic_freeze(obj: object) -> object:
-    """Deep freeze the provided object."""
-    raise NotImplementedError("This function is not yet implemented.")
+def freeze(
+    obj: object,
+    *,
+    add_converters: Optional[Sequence[Converter]] = None,
+    by_superclass: bool = False,
+) -> object:
+    """Deep freeze the provided object. If the provided object is a nested data
+    structure, it will start by freezing the lowest level children and then work its
+    way up to the root object. For each child object as well as the root object, the
+    object type is used to find the appropriate converter.
+
+    Args:
+        obj:
+            The object to be deep frozen.
+        add_converters:
+            Optionally provide a sequence of converters to be considered in addition
+            to the standard converters that come with this library. If providing a
+            custom converter for an object type that is already present in the standard
+            set, the standard converter is overwritten.
+        by_superclass:
+            It is always tried to find a converter that matches the exact object type.
+            If that fails and this argument is set to `True`, it is also tried to find a
+            converter matching a superclass of the object type. The first matching
+            converter is used, thus the priorities and the sequence of the converters
+            (both standard and custom once defined via `add_converters`) are important.
+            Please note that matching by superclass might cause data to be lost as a
+            sub-class may define additional attributes that are not present in the
+            superclass and thus not considered during the conversion. Thus by default,
+            this option is set to `False`.
+
+    Raises:
+        ConverterNotFoundError:
+            If no converter for the given object type could be found.
+    """
+    converters = (
+        STANDARD_CONVERTERS
+        if add_converters is None
+        else (*STANDARD_CONVERTERS, *add_converters)
+    )
+    return custom_freeze(obj, converters=converters, by_superclass=by_superclass)

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test the arctic_freeze function."""
+"""Test the freeze function."""
 
 import pytest
 
-from arctictypes import arctic_freeze
+from arctictypes import freeze
 from tests.cases import INVALID_CASES, VALID_CASES, InvalidTestCase, ValidTestCase
 
 
@@ -27,7 +27,7 @@ from tests.cases import INVALID_CASES, VALID_CASES, InvalidTestCase, ValidTestCa
 )
 def test_valid_inputs(test_case: ValidTestCase):
     """Test the arctic freeze function with valid inputs."""
-    assert arctic_freeze(test_case.inputs) == test_case.expected_outputs
+    assert freeze(test_case.inputs) == test_case.expected_outputs
 
 
 @pytest.mark.parametrize(
@@ -38,4 +38,4 @@ def test_valid_inputs(test_case: ValidTestCase):
 def test_invalid_inputs(test_case: InvalidTestCase):
     """Test the arctic freeze function with invalid inputs."""
     with pytest.raises(test_case.expected_exception_type):
-        arctic_freeze(test_case.inputs)
+        freeze(test_case.inputs)

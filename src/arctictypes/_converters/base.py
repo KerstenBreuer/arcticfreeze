@@ -14,7 +14,6 @@
 
 """Classes, constants, and utils for defining converters."""
 
-from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Callable, Final, Generic, TypeVar
 
@@ -26,11 +25,6 @@ STANDARD_MUTABLE_PRIORITY: Final = -100
 InputObject = TypeVar("InputObject")
 
 
-def no_op_return(obj: InputObject) -> InputObject:
-    """Returns the provided object unchanged."""
-    return obj
-
-
 @dataclass(frozen=True)
 class Converter(Generic[InputObject]):
     """A class describing how to convert a (mutable) object to an immutable counterpart.
@@ -39,13 +33,19 @@ class Converter(Generic[InputObject]):
         input_type:
             The type of the object to convert. The object may also has a type that is
             a subclass of this type.
-        converter:
-            A callable that takes an object and returns an immutable version of it.
-            By default a no-op converter is used that returns the object unchanged.
-        children:
-            A callable that returns an iterable of all the children of the object. By
-            default an empty iterable is returned corresponding to the assumption that
-            the object has no children.
+        convert:
+            A callable to return a frozen version of the provided object. The returned
+            object is not only immutable itself but also all children (in case the
+            provided object was a nested data structure such as a dict or list) where
+            converted to immutable counterparts.
+            The callable takes two arguments, (1) the object (which must be an
+            instance of input_type) to freeze and (2) a callable that may be used by the
+            convert callable to freeze a child object.
+            Importantly, the callable passed in (2) does not make any assumption on the
+            type of children objects passed to it (in that way it differs from the
+            type-specific convert function).
+            By default a no-op function is used as convert callable is that returns the
+            object unchanged.
         priority:
             An integer indicating the priority of this converter. A higher priority
             means that this converter is preferred over others when multiple converters
@@ -58,6 +58,7 @@ class Converter(Generic[InputObject]):
     """
 
     input_type: type[InputObject]
-    converter: Callable[[InputObject], object] = no_op_return
-    children: Callable[[InputObject], Iterable[object]] = lambda obj: ()
+    convert: Callable[[InputObject, Callable[[object], object]], object] = (
+        lambda obj, _: obj
+    )
     priority: int = DEFAULT_PRIORITY
