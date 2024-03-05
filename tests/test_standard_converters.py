@@ -14,7 +14,10 @@
 
 """Test the standard converters."""
 
-from arctictypes import STANDARD_CONVERTERS, STANDARD_CONVERTERS_BY_INPUT_TYPE
+from arctictypes._converters import (
+    STANDARD_CONVERTERS,
+    STANDARD_CONVERTERS_BY_INPUT_TYPE,
+)
 from arctictypes._freeze import sort_and_deduplicate_converters
 
 
