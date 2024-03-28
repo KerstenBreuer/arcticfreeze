@@ -14,9 +14,11 @@
 
 """An implementation of a frozen dictionary with support for pydantic."""
 
+from __future__ import annotations
+
 import typing
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any, TypeVar, overload
 
 from immutabledict import immutabledict
 from pydantic import GetCoreSchemaHandler
@@ -32,6 +34,15 @@ _V_co = TypeVar("_V_co", covariant=True)
 
 class FrozenDict(immutabledict[_K, _V_co]):
     """A pydantic-comatible wrapper around immutabledict."""
+
+    @overload
+    def __new__(cls, arg: Mapping[_K, _V_co]) -> FrozenDict[_K, _V_co]: ...
+
+    @overload
+    def __new__(cls, **kwargs: _V_co) -> FrozenDict[str, _V_co]: ...
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> FrozenDict:
+        return super().__new__(cls, *args, **kwargs)  # type: ignore
 
     @classmethod
     def __get_pydantic_core_schema__(
