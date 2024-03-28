@@ -16,8 +16,8 @@
 
 from importlib.metadata import version
 
-from ._converters import STANDARD_CONVERTERS, Converter
-from ._freeze import ConverterNotFoundError, freeze
+from ._internal._converters import STANDARD_CONVERTERS, Converter
+from ._internal.freeze import ConverterNotFoundError, freeze
 
 __all__ = [
     "ConverterNotFoundError",

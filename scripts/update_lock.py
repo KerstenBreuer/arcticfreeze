@@ -26,7 +26,6 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import tomli_w
-
 from script_utils import cli, deps
 
 REPO_ROOT_DIR = Path(__file__).parent.parent.resolve()

@@ -14,10 +14,9 @@
 
 """Functionality for resolving the converter matching a given object."""
 
-
 from collections.abc import Mapping, Sequence
 
-from arctictypes._converters import Converter
+from arctictypes._internal._converters import Converter
 
 
 class ConverterNotFoundError(Exception):

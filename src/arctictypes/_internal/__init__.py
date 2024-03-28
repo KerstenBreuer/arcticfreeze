@@ -12,4 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Fixtures that are used in both integration and unit tests."""
+"""Internal implementation details of the package. They may change without notice
+even between minor or patch version bumps."""

@@ -15,13 +15,13 @@
 # limitations under the License.
 #
 """Script to ensure the pre-commit hook revs match what is installed."""
+
 import re
 import sys
 from functools import partial
 from pathlib import Path
 
 from packaging.requirements import Requirement
-
 from script_utils import cli, lock_deps
 
 REPO_ROOT_DIR = Path(__file__).parent.parent.resolve()

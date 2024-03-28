@@ -20,7 +20,7 @@ from typing import Callable, Final
 
 import immutabledict
 
-from arctictypes._converters.base import (
+from arctictypes._internal._converters.base import (
     STANDARD_MUTABLE_PRIORITY,
     STANDARD_NON_PRIMITIVE_IMMUTABLE_PRIORITY,
     STANDARD_PRIMITIVE_PRIORITY,

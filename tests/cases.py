@@ -17,9 +17,8 @@
 from dataclasses import dataclass
 from typing import Any
 
-from immutabledict import immutabledict
-
 from arctictypes import ConverterNotFoundError
+from immutabledict import immutabledict
 
 
 @dataclass(frozen=True)
