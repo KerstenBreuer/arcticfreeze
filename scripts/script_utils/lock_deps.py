@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 """Provides a function to get all dependencies from the lock file"""
+
 import re
 from pathlib import Path
 from typing import Optional
