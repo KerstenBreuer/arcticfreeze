@@ -16,7 +16,7 @@
 
 import json
 
-from arctictypes._internal.frozendict import FrozenDict
+from arctictypes import FrozenDict
 from pydantic import BaseModel, ConfigDict
 
 
