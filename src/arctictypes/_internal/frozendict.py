@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""An implementation of a frozen dictionary with support for pydantic."""
+"""An implementation of a frozen dictionary. It provides support for Pydantic v2 models
+without requiring Pydantic as a dependency.
+"""
 
 from __future__ import annotations
 
@@ -21,19 +23,32 @@ from collections.abc import Mapping
 from typing import Any, TypeVar, overload
 
 from immutabledict import immutabledict
-from pydantic import GetCoreSchemaHandler
-from pydantic_core.core_schema import (
-    CoreSchema,
-    no_info_after_validator_function,
-    plain_serializer_function_ser_schema,
-)
 
 _K = TypeVar("_K")
 _V_co = TypeVar("_V_co", covariant=True)
 
 
 class FrozenDict(immutabledict[_K, _V_co]):
-    """A pydantic-comatible wrapper around immutabledict."""
+    """A Mapping type that does not provide any additional methods for modification of
+    its content after construction.
+
+    It has first class support for type hints. Moreover, it is ready to be used in
+    Pydantic v2 models, yet, does not require Pydantic as a dependency.
+
+    Examples:
+    ```python
+    from arctictypes import FrozenDict
+
+    # Construct a FrozenDict from another mapping (such as a dictionary):
+    example_from_dict = FrozenDict({"a": 1, "b": 2})
+
+    # Construct a FrozenDict from keyword arguments:
+    example_from_kwargs = FrozenDict(a=1, b=2)
+
+    # Demonstrate that both constructions are equal:
+    assert example_from_dict == example_from_kwargs
+    ```
+    """
 
     @overload
     def __new__(cls, arg: Mapping[_K, _V_co]) -> FrozenDict[_K, _V_co]: ...
@@ -44,35 +59,53 @@ class FrozenDict(immutabledict[_K, _V_co]):
     def __new__(cls, *args: Any, **kwargs: Any) -> FrozenDict:
         return super().__new__(cls, *args, **kwargs)  # type: ignore
 
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        """Get the pydantic core schema for this type."""
-        # Validate the type against a Mapping:
-        args = typing.get_args(source)
-        if not args:
-            validation_schema = handler.generate_schema(Mapping)
-            return_schema = handler.generate_schema(dict)
-        elif len(args) == 2:
-            validation_schema = handler.generate_schema(Mapping[args[0], args[1]])  # type: ignore
-            return_schema = handler.generate_schema(dict[args[0], args[1]])  # type: ignore
-        else:
-            raise TypeError(
-                "Expected exactly two (or no) type arguments for FrozenDict, got"
-                + f" {len(args)}"
-            )
 
-        serialization_schema = plain_serializer_function_ser_schema(
-            lambda x: dict(x), return_schema=return_schema
+# If Pydantic v2 is installed, add support for Pydantic models to FrozenDict:
+try:
+    from pydantic import __version__ as pydantic_version
+except ImportError:
+    pass
+else:
+    if pydantic_version.startswith("2."):
+        from pydantic import GetCoreSchemaHandler
+        from pydantic_core.core_schema import (
+            CoreSchema,
+            no_info_after_validator_function,
+            plain_serializer_function_ser_schema,
         )
 
-        # Uses cls as validator function to convert the dict to a FrozenDict:
-        return no_info_after_validator_function(
-            # callable to use after validation against the schema (convert to
-            # FrozenDict):
-            cls,
-            # the validation schema to use before executing the callable:
-            validation_schema,
-            serialization=serialization_schema,
+        def get_pydantic_core_schema(
+            cls, source: Any, handler: GetCoreSchemaHandler
+        ) -> CoreSchema:
+            """Get the pydantic core schema for this type."""
+            # Validate the type against a Mapping:
+            args = typing.get_args(source)
+            if not args:
+                validation_schema = handler.generate_schema(Mapping)
+                return_schema = handler.generate_schema(dict)
+            elif len(args) == 2:
+                validation_schema = handler.generate_schema(Mapping[args[0], args[1]])  # type: ignore
+                return_schema = handler.generate_schema(dict[args[0], args[1]])  # type: ignore
+            else:
+                raise TypeError(
+                    "Expected exactly two (or no) type arguments for FrozenDict, got"
+                    + f" {len(args)}"
+                )
+
+            serialization_schema = plain_serializer_function_ser_schema(
+                lambda x: dict(x), return_schema=return_schema
+            )
+
+            # Uses cls as validator function to convert the dict to a FrozenDict:
+            return no_info_after_validator_function(
+                # callable to use after validation against the schema (convert to
+                # FrozenDict):
+                cls,
+                # the validation schema to use before executing the callable:
+                validation_schema,
+                serialization=serialization_schema,
+            )
+
+        FrozenDict.__get_pydantic_core_schema__ = classmethod(  # type: ignore
+            get_pydantic_core_schema
         )
