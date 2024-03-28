@@ -14,62 +14,95 @@
 
 """Test the FrozenDict class."""
 
+import json
+
 from arctictypes._internal.frozendict import FrozenDict
 from pydantic import BaseModel, ConfigDict
 
 
-def test_frozen_dict():
-    """Test validation and serialization of FrozenDict used in pydantic models.."""
+def test_frozen_dict_validation():
+    """Test validation and type conversion using FrozenDict in pydantic models."""
 
-    class Test(BaseModel):
-        dict_: FrozenDict
+    class TestModel(BaseModel):
+        frozen_dict: FrozenDict
 
-    test_dict = {1: 2}
+    input_dict = {"a": 1, "b": 2}
+    frozen_input_dict = FrozenDict(input_dict)
 
-    test_from_dict = Test.model_validate({"dict_": test_dict})
-    test_from_frozendict = Test(dict_=FrozenDict(test_dict))
+    model_from_dict = TestModel.model_validate({"frozen_dict": input_dict})
+    model_from_frozendict = TestModel(frozen_dict=frozen_input_dict)
 
-    assert test_from_dict.dict_ == test_from_frozendict.dict_ == FrozenDict(test_dict)
+    assert (
+        model_from_dict.frozen_dict
+        == model_from_frozendict.frozen_dict
+        == frozen_input_dict
+    )
 
-    test_dumped = test_from_dict.model_dump()
-    observed_dict = test_dumped["dict_"]
-    assert observed_dict == test_dict
+
+def test_frozen_dict_serialization():
+    """Test serialization of FrozenDict used in pydantic models when using model_dump."""
+
+    class TestModel(BaseModel):
+        frozen_dict: FrozenDict
+
+    input_dict = {"a": 1, "b": 2}
+
+    model = TestModel.model_validate({"frozen_dict": input_dict})
+
+    dumped_data = model.model_dump()
+    observed_dict = dumped_data["frozen_dict"]
+    assert observed_dict == input_dict
     assert isinstance(observed_dict, dict)
 
 
-def test_frozen_dict_schema():
+def test_frozen_dict_serialization_json():
+    """Test serialization of FrozenDict used in pydantic models when using
+    model_dump_json.
+    """
+
+    class TestModel(BaseModel):
+        frozen_dict: FrozenDict
+
+    input_dict = {"a": 1, "b": 2}
+
+    model = TestModel.model_validate({"frozen_dict": input_dict})
+
+    dumped_json = model.model_dump_json()
+    observed_dict = json.loads(dumped_json)["frozen_dict"]
+    assert observed_dict == input_dict
+
+
+def test_frozen_dict_json_schema():
     """Test JSON schema generation of FrozenDicts-containing pydantic models."""
 
-    class Test(BaseModel):
-        dict_: FrozenDict
+    class TestModel(BaseModel):
+        frozen_dict: FrozenDict
 
-    schema_from_frozendict = Test.model_json_schema()
+    schema_from_frozen_dict = TestModel.model_json_schema()
 
-    # redefine Test to not using standard dict:
-    class Test(BaseModel):  # type: ignore
-        dict_: dict
+    # redefine TestModel to not using standard dict:
+    class TestModel(BaseModel):  # type: ignore
+        frozen_dict: dict
 
-    schema_from_dict = Test.model_json_schema()
+    schema_from_dict = TestModel.model_json_schema()
 
-    assert schema_from_frozendict == schema_from_dict
+    assert schema_from_frozen_dict == schema_from_dict
 
 
 def test_frozen_dict_hashing():
     """Test hashing and comparison of pydantic models using FrozenDicts."""
 
-    class Test(BaseModel):
-        dict_: FrozenDict
+    class TestModel(BaseModel):
+        frozen_dict: FrozenDict
 
         model_config = ConfigDict(frozen=True)
 
-    test_dict = {1: 2}
+    input_dict = {"a": 1, "b": 2}
 
-    test1 = Test.model_validate({"dict_": test_dict})
-    test2 = Test.model_validate({"dict_": test_dict})
+    test1 = TestModel.model_validate({"frozen_dict": input_dict})
+    test2 = TestModel.model_validate({"frozen_dict": input_dict})
 
-    # make sure hash does not throw an exception
-    hash(test1)
-
+    assert hash(test1) == hash(test2)
     assert test1 == test2
 
 
@@ -77,17 +110,12 @@ def test_frozen_dict_nesting():
     """Test nested pydantic models using FrozenDict."""
 
     class Inner(BaseModel):
-        dict_: FrozenDict
+        frozen_dict: FrozenDict
 
-    class Test(BaseModel):
+    class TestModel(BaseModel):
         inner: FrozenDict[str, Inner]
 
-    test_dict = {1: 2}
+    input_dict = {"a": 1, "b": 2}
 
-    test1 = Test.model_validate({"inner": {"test": {"dict_": test_dict}}})
-    assert isinstance(test1.inner["test"], Inner)
-
-    test2 = Test(
-        inner=FrozenDict({"test": FrozenDict({"dict_": FrozenDict(test_dict)})})
-    )
-    assert test1 == test2
+    model = TestModel.model_validate({"inner": {"test": {"frozen_dict": input_dict}}})
+    assert isinstance(model.inner["test"], Inner)
