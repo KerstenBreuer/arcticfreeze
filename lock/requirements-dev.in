@@ -28,6 +28,7 @@ jsonschema2md>=1.0.0
 setuptools>=67.7.2
 
 pip-tools>=7.3.0
+uv>=0.1.24
 tomli>=2.0.1
 tomli_w>=1.0.0
 
