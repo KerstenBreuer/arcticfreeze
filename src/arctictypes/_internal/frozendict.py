@@ -107,7 +107,7 @@ else:
 
             json_serialization_schema = python_serialization_schema = (
                 plain_serializer_function_ser_schema(
-                    lambda x: dict(x), return_schema=validation_schema, when_used="json"
+                    dict, return_schema=validation_schema, when_used="json"
                 )
             )
 
