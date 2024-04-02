@@ -1,7 +1,7 @@
 #!/bin/bash
 # install service in dev container
 
-cd /workspaces/arctictypes
+cd /workspaces/arcticfreeze
 
 # upgrade pip
 python -m pip install --upgrade pip
