@@ -68,17 +68,11 @@ except ImportError:
 else:
     if pydantic_version.startswith("2."):
         from pydantic import GetCoreSchemaHandler
-        from pydantic_core.core_schema import (
-            CoreSchema,
-            any_schema,
-            json_or_python_schema,
-            no_info_after_validator_function,
-            plain_serializer_function_ser_schema,
-        )
+        from pydantic_core import core_schema
 
         def get_pydantic_core_schema(
             cls, source: Any, handler: GetCoreSchemaHandler
-        ) -> CoreSchema:
+        ) -> core_schema.CoreSchema:
             """Get the pydantic core schema for this type."""
             # Validate the type against a Mapping:
             args = typing.get_args(source)
@@ -92,11 +86,13 @@ else:
                     + f" {len(args)}"
                 )
 
-            python_serialization_schema = plain_serializer_function_ser_schema(
-                lambda x: x, return_schema=any_schema()
+            python_serialization_schema = (
+                core_schema.plain_serializer_function_ser_schema(
+                    lambda x: x, return_schema=core_schema.any_schema()
+                )
             )
 
-            python_schema = no_info_after_validator_function(
+            python_schema = core_schema.no_info_after_validator_function(
                 # callable to use after validation against the schema (convert to
                 # FrozenDict):
                 cls,
@@ -105,14 +101,14 @@ else:
                 serialization=python_serialization_schema,
             )
 
-            json_serialization_schema = python_serialization_schema = (
-                plain_serializer_function_ser_schema(
+            json_serialization_schema = (
+                core_schema.plain_serializer_function_ser_schema(
                     dict, return_schema=validation_schema, when_used="json"
                 )
             )
 
             # Uses cls as validator function to convert the dict to a FrozenDict:
-            return json_or_python_schema(
+            return core_schema.json_or_python_schema(
                 json_schema=validation_schema,
                 python_schema=python_schema,
                 serialization=json_serialization_schema,
